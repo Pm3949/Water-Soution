@@ -1,7 +1,7 @@
-import axios from 'axios';
+import axios from "axios";
 
 const API = axios.create({
-  baseURL: 'https://water-soution-backend.onrender.com',
+  baseURL: "https://water-soution-backend.onrender.com",
 });
 
-export const API;
+export default API;
