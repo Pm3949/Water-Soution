@@ -1,30 +1,27 @@
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, Button } from "react-native";
+import { useContext } from "react";
+import { AuthContext } from "../context/AuthContext";
 
 export default function DashboardScreen({ navigation }) {
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Dashboard</Text>
+  const { user, logout } = useContext(AuthContext);
 
-      <TouchableOpacity
-        style={styles.button}
+  return (
+    <View style={{ flex: 1, padding: 20 }}>
+      <Text style={{ fontSize: 20 }}>Welcome {user?.name}</Text>
+      <Text>Role: {user?.role}</Text>
+
+      {user?.role === "owner" && (
+        <Button
+          title="Manage Workers"
+          onPress={() => navigation.navigate("Workers")}
+        />
+      )}
+      <Button
+        title="Customers"
         onPress={() => navigation.navigate("Customers")}
-      >
-        <Text style={styles.buttonText}>Go to Customers</Text>
-      </TouchableOpacity>
+      />
+
+      <Button title="Logout" onPress={logout} />
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#fff",
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 10,
-  },
-});

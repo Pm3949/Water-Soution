@@ -57,6 +57,7 @@ export const sendManualReminder = async (req, res) => {
 
         res.json({message: "Reminders sent successfully"});
     } catch (error) {
+       console.error("REMINDER ERROR:", error);   // 👈 IMPORTANT
         res.status(500).json({message: error.message});
     }
 };
