@@ -1,10 +1,11 @@
 import express from 'express';
 import {protect} from '../middleware/authMiddleware.js';
-import { changePin, createWorker, resetWorkerPin, listWorkers, deleteWorker, updateWorker, searchWorker } from '../controllers/userController.js';
+import { changePin, createWorker, resetWorkerPin, listWorkers, deleteWorker, updateWorker, searchWorker, login } from '../controllers/userController.js';
 
 
 const router = express.Router();
 // public (only works first time)
+router.post("/login", login);
 router.post("/create-worker", protect, createWorker);
 
 // owner only
