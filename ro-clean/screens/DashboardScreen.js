@@ -1,10 +1,16 @@
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 
-export default function DashboardScreen() {
+export default function DashboardScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Dashboard</Text>
-      <Text>Welcome to RO Service App</Text>
+
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => navigation.navigate("Customers")}
+      >
+        <Text style={styles.buttonText}>Go to Customers</Text>
+      </TouchableOpacity>
     </View>
   );
 }

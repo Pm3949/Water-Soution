@@ -1,27 +1,42 @@
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
 import { useState } from "react";
+import { login } from "../services/api";
 
 export default function LoginScreen({ navigation }) {
+  const [phone, setPhone] = useState("");
   const [pin, setPin] = useState("");
 
-  const handleLogin = () => {
-    if (pin === "1234") {
-      navigation.replace("Dashboard");
-    } else {
-      alert("Wrong PIN");
+  const handleLogin = async () => {
+    try {
+      const res = await login({ phone, pin });
+
+      if (res.data.token) {
+        navigation.replace("Dashboard", {
+          role: res.data.role,
+        });
+      }
+    } catch (err) {
+      alert("Invalid login");
     }
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>RO Service Login</Text>
+      <Text style={styles.title}>RO Login</Text>
 
       <TextInput
+        placeholder="Phone"
         style={styles.input}
-        placeholder="Enter PIN"
+        value={phone}
+        onChangeText={setPhone}
+        keyboardType="phone-pad"
+      />
+
+      <TextInput
+        placeholder="PIN"
+        style={styles.input}
         value={pin}
         onChangeText={setPin}
-        keyboardType="numeric"
         secureTextEntry
       />
 
