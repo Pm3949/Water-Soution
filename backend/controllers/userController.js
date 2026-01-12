@@ -98,6 +98,8 @@ export const listWorkers = async (req, res) => {
   res.json(workers);
 };
 
+
+
 // Update worker
 export const updateWorker = async (req, res) => {
   if (req.user.role !== "owner") {
@@ -139,4 +141,34 @@ export const searchWorker = async (req, res) => {
   });
 
   res.json(workers);
+};
+
+
+import jwt from "jsonwebtoken";
+
+export const login = async (req, res) => {
+  try {
+    const { phone, pin } = req.body;
+
+    const user = await User.findOne({ phone });
+    if (!user) return res.status(401).json({ message: "Invalid credentials" });
+
+    const ok = await bcrypt.compare(pin, user.pinHash);
+    if (!ok) return res.status(401).json({ message: "Invalid credentials" });
+
+    const token = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "1Y" }
+    );
+
+    res.json({
+      token,
+      role: user.role,
+      name: user.name,
+      phone: user.phone,
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 };
