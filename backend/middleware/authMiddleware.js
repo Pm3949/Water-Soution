@@ -10,18 +10,15 @@ export const protect = async (req, res, next) => {
     }
 
     const token = authHeader.split(" ")[1];
-
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // Fetch real user from DB
     const user = await User.findById(decoded.id).select("-pinHash");
-
     if (!user) {
       return res.status(401).json({ message: "User not found" });
     }
 
-    req.user = user;       // full user object
-    req.userId = user._id; // convenience
+    req.user = user;
+    req.userId = user._id;
     next();
 
   } catch (err) {

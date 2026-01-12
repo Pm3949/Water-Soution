@@ -1,22 +1,33 @@
-import express from 'express';
-import {protect} from '../middleware/authMiddleware.js';
-import { changePin, createWorker, resetWorkerPin, listWorkers, deleteWorker, updateWorker, searchWorker, login } from '../controllers/userController.js';
+import express from "express";
+import {
+  bootstrapOwner,
+  login,
+  createWorker,
+  resetWorkerPin,
+  listWorkers,
+  deleteWorker,
+  updateWorker,
+  searchWorker,
+  changePin,
+} from "../controllers/userController.js";
 
+import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
-// public (only works first time)
-router.post("/login", login);
-router.post("/create-worker", protect, createWorker);
 
-// owner only
+// PUBLIC
+router.post("/bootstrap-owner", bootstrapOwner); // only once
+router.post("/login", login);
+
+// OWNER ONLY
+router.post("/workers", protect, createWorker);
 router.get("/workers", protect, listWorkers);
 router.put("/workers/:id", protect, updateWorker);
 router.delete("/workers/:id", protect, deleteWorker);
 router.get("/workers/search", protect, searchWorker);
-router.post("/reset-worker/:id", protect, resetWorkerPin);
+router.put("/workers/:id/reset-pin", protect, resetWorkerPin);
 
-// both owner + worker
-router.post("/change-pin", protect, changePin);
-
+// BOTH OWNER + WORKER
+router.put("/change-pin", protect, changePin);
 
 export default router;
