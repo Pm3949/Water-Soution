@@ -1,6 +1,6 @@
 import express from 'express';
-import {protect, admin} from '../middleware/authMiddleware.js';
-import { changePin, createWorker, resetWorkerPin, listWorkers, deleteWorker, updateWorker, searchWorker } from '../controllers/userController';
+import {protect} from '../middleware/authMiddleware.js';
+import { changePin, createWorker, resetWorkerPin, listWorkers, deleteWorker, updateWorker, searchWorker } from '../controllers/userController.js';
 
 
 const router = express.Router();
