@@ -65,12 +65,10 @@ export const sendReminder = (id, token) =>
     }
   );
 
-export const markServiceDone = (id, token) => {
-  API.put(
-    `/customers/${id}/service-done`,
-    {},
-    {
-      headers: { Authorization: `Bearer ${token}` },
-    }
-  );
-};
+export const markServiceDone = (id, token) =>
+  API.put(`/customers/${id}/service-done`, null, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+

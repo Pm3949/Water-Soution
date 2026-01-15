@@ -116,13 +116,19 @@ export const markServiceDone = async (req, res) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
+    // 🔥 Update last service
     customer.lastServiceDate = today;
-    // nextServiceDate auto updates via pre-save hook
+
+    // 🔥 Recalculate next service
+    const next = new Date(today);
+    next.setDate(next.getDate() + 90);
+    customer.nextServiceDate = next;
 
     await customer.save();
 
-    res.json({ message: "Service marked as completed", customer });
+    res.json(customer);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
+
