@@ -16,6 +16,7 @@ import {
   updateCustomer,
   deleteCustomer,
   sendReminder,
+  markServiceDone,
 } from "../services/api";
 
 // Utility: add days to a date
@@ -100,17 +101,32 @@ export default function CustomersScreen() {
 
   const removeCustomer = (id) => {
     Alert.alert("Delete?", "Are you sure you want to delete this customer?", [
-      { text: "Cancel" },
+      { text: "Cancel", style: "cancel" },
       {
         text: "Delete",
         style: "destructive",
         onPress: async () => {
-          await deleteCustomer(id, token);
-          loadCustomers();
+          try {
+            await deleteCustomer(id, token);
+            loadCustomers();
+          } catch (err) {
+            Alert.alert("Error", "Failed to delete customer");
+          }
         },
       },
     ]);
   };
+
+  const markDone = async (id) => {
+  try {
+    await markServiceDone(id, token);
+    Alert.alert("Success", "Service marked as completed");
+    loadCustomers();
+  } catch {
+    Alert.alert("Error", "Failed to update service");
+  }
+};
+
 
   const remind = async (id) => {
     try {
@@ -121,12 +137,17 @@ export default function CustomersScreen() {
     }
   };
 
-  // 🔴 FILTER LOGIC
   const filteredCustomers = customers.filter((c) => {
-    if (filter === "all") return true;
-
     const next = addDays(c.lastServiceDate, 90);
-    return next < new Date(); // overdue
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    next.setHours(0, 0, 0, 0);
+
+    if (filter === "overdue") return next < today;
+    if (filter === "today") return next.getTime() === today.getTime();
+
+    return true;
   });
 
   const renderItem = ({ item }) => {
@@ -157,6 +178,10 @@ export default function CustomersScreen() {
           <TouchableOpacity onPress={() => removeCustomer(item._id)}>
             <Text style={[styles.btn, { color: "red" }]}>Delete</Text>
           </TouchableOpacity>
+
+          <TouchableOpacity onPress={() => markDone(item._id)}>
+            <Text style={{ color: "green" }}>Service Done</Text>
+          </TouchableOpacity>
         </View>
       </View>
     );
@@ -169,24 +194,17 @@ export default function CustomersScreen() {
         <Text style={styles.add}>+ Add Customer</Text>
       </TouchableOpacity>
 
-      {/* 🔴 FILTER BUTTONS */}
       <View style={styles.filterRow}>
         <TouchableOpacity onPress={() => setFilter("all")}>
-          <Text style={[styles.filterBtn, filter === "all" && styles.active]}>
-            All
-          </Text>
+          <Text>All</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={() => setFilter("today")}>
+          <Text style={{ color: "orange" }}>Due Today</Text>
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => setFilter("overdue")}>
-          <Text
-            style={[
-              styles.filterBtn,
-              filter === "overdue" && styles.active,
-              { color: "red" },
-            ]}
-          >
-            Overdue
-          </Text>
+          <Text style={{ color: "red" }}>Overdue</Text>
         </TouchableOpacity>
       </View>
 

@@ -105,3 +105,24 @@ export const getOverdueCustomers = async (req, res) => {
   }
 };
 
+export const markServiceDone = async (req, res) => {
+  try {
+    const customer = await Customer.findById(req.params.id);
+
+    if (!customer) {
+      return res.status(404).json({ message: "Customer not found" });
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    customer.lastServiceDate = today;
+    // nextServiceDate auto updates via pre-save hook
+
+    await customer.save();
+
+    res.json({ message: "Service marked as completed", customer });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
