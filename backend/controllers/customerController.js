@@ -3,13 +3,27 @@ import { sendWhatsapp, sendSMS } from '../utils/messageService.js';
 
 export const addCustomer = async (req, res) => {
   try {
-    const customer = new Customer(req.body);
+    const { name, phone, address, lastServiceDate } = req.body;
+
+    const customer = new Customer({
+      name,
+      phone,
+      address,
+      lastServiceDate,
+      nextServiceDate: new Date(
+        new Date(lastServiceDate).setDate(
+          new Date(lastServiceDate).getDate() + 90
+        )
+      ),
+    });
+
     await customer.save();
     res.status(201).json(customer);
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
 };
+
 
 export const getCustomers = async (req, res) => {
   try {
@@ -22,21 +36,34 @@ export const getCustomers = async (req, res) => {
 
 export const updateCustomer = async (req, res) => {
   try {
-    const updated = await Customer.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-    });
-    if (!updated) {
+    const customer = await Customer.findById(req.params.id);
+
+    if (!customer) {
       return res.status(404).json({ message: "Customer not found" });
     }
-    res.json(updated);
+
+    // Update allowed fields
+    if (req.body.name !== undefined) customer.name = req.body.name;
+    if (req.body.phone !== undefined) customer.phone = req.body.phone;
+    if (req.body.address !== undefined) customer.address = req.body.address;
+    if (req.body.lastServiceDate !== undefined) {
+      customer.lastServiceDate = req.body.lastServiceDate;
+      // nextServiceDate auto updates via pre-save hook
+    }
+
+    await customer.save(); 
+
+    res.json(customer);
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
 };
 
+
 export const deleteCustomer = async (req, res) => {
   try {
     const deleted = await Customer.findByIdAndDelete(req.params.id);
+    console.log("DELETE HIT:", req.params.id);
     if (!deleted) {
       return res.status(404).json({ message: "Customer not found" });
     }
@@ -58,7 +85,23 @@ export const sendManualReminder = async (req, res) => {
 
         res.json({message: "Reminders sent successfully"});
     } catch (error) {
-       console.error("REMINDER ERROR:", error);   // 👈 IMPORTANT
+       console.error("REMINDER ERROR:", error);   
         res.status(500).json({message: error.message});
     }
 };
+
+export const getOverdueCustomers = async (req, res) => {
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const overdueCustomers = await Customer.find({
+      nextServiceDate: { $lt: today },
+    }).sort({ nextServiceDate: 1 });
+
+    res.json(overdueCustomers);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+

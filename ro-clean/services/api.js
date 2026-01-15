@@ -1,5 +1,10 @@
 import axios from "axios";
 
+// const API = axios.create({
+//   baseURL: "http://localhost:5000", // or localhost
+// });
+
+
 const API = axios.create({
   baseURL: "https://water-soution-backend.onrender.com", // or localhost
 });
@@ -49,6 +54,7 @@ export const updateCustomer = (id, data, token) =>
   });
 
 export const deleteCustomer = (id, token) =>
+  console.log("pressed");
   API.delete(`/customers/${id}`, {
     headers: { Authorization: `Bearer ${token}` },
   });

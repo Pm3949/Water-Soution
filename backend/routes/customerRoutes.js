@@ -1,5 +1,5 @@
 import express from 'express';
-import { getCustomers, addCustomer, updateCustomer, deleteCustomer, sendManualReminder} from '../controllers/customerController.js';
+import { getCustomers, addCustomer, updateCustomer, deleteCustomer, sendManualReminder, getOverdueCustomers} from '../controllers/customerController.js';
 import { protect, onlyOwner } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
@@ -15,4 +15,6 @@ router.post("/add", addCustomer);
 router.put("/:id", updateCustomer);
 router.delete("/:id", deleteCustomer);
 router.post("/:id/send-reminder", sendManualReminder);
+router.get("/overdue", getOverdueCustomers);
+
 export default router;

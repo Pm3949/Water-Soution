@@ -23,5 +23,15 @@ const customerSchema = new mongoose.Schema({
     },
 },{timestamps: true});
 
+// Auto-calculate next service date
+customerSchema.pre("save", function (next) {
+  if (this.isModified("lastServiceDate")) {
+    const d = new Date(this.lastServiceDate);
+    d.setDate(d.getDate() + 90);
+    this.nextServiceDate = d;
+  }
+  next();
+});
+
 const Customer = mongoose.model("Customer", customerSchema);
 export default Customer;
