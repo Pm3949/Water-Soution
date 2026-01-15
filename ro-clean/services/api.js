@@ -1,13 +1,13 @@
 import axios from "axios";
 
-const API = axios.create({
-  baseURL: "http://10.0.2.2:5000",
-});
-
-
 // const API = axios.create({
-//   baseURL: "https://water-soution-backend.onrender.com", // or localhost
+//   baseURL: "http://10.0.2.2:5000",
 // });
+
+
+const API = axios.create({
+  baseURL: "https://water-soution-backend.onrender.com", // or localhost
+});
 
 export const loginApi = (data) => API.post("/users/login", data);
 
