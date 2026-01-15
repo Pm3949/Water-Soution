@@ -105,30 +105,36 @@ export const getOverdueCustomers = async (req, res) => {
   }
 };
 
+
 export const markServiceDone = async (req, res) => {
   try {
-    const customer = await Customer.findById(req.params.id);
+    // console.log("SERVICE DONE HIT:", req.params.id);
 
+    const customer = await Customer.findById(req.params.id);
     if (!customer) {
       return res.status(404).json({ message: "Customer not found" });
     }
 
+    // Normalize today
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // 🔥 Update last service
+    // ✅ Update last service
     customer.lastServiceDate = today;
 
-    // 🔥 Recalculate next service
-    const next = new Date(today);
-    next.setDate(next.getDate() + 90);
-    customer.nextServiceDate = next;
+    // ✅ Create NEW date object for next service
+    const nextService = new Date(today);
+    nextService.setDate(nextService.getDate() + 90);
+
+    customer.nextServiceDate = nextService;
 
     await customer.save();
 
+    // console.log("SERVICE UPDATED:", customer._id);
     res.json(customer);
+
   } catch (error) {
+    console.error("SERVICE DONE ERROR:", error);
     res.status(500).json({ message: error.message });
   }
 };
-

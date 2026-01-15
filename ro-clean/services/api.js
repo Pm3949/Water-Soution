@@ -1,12 +1,13 @@
 import axios from "axios";
 
-// const API = axios.create({
-//   baseURL: "http://localhost:5000", // or localhost
-// });
-
 const API = axios.create({
-  baseURL: "https://water-soution-backend.onrender.com", // or localhost
+  baseURL: "http://10.0.2.2:5000",
 });
+
+
+// const API = axios.create({
+//   baseURL: "https://water-soution-backend.onrender.com", // or localhost
+// });
 
 export const loginApi = (data) => API.post("/users/login", data);
 
@@ -66,7 +67,7 @@ export const sendReminder = (id, token) =>
   );
 
 export const markServiceDone = (id, token) =>
-  API.put(`/customers/${id}/service-done`, null, {
+  API.put(`/customers/${id}/service-done`, {}, {
     headers: {
       Authorization: `Bearer ${token}`,
     },

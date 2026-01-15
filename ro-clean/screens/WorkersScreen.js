@@ -33,6 +33,7 @@ export default function WorkersScreen() {
   // Reset PIN modal
   const [showResetModal, setShowResetModal] = useState(false);
   const [selectedWorkerId, setSelectedWorkerId] = useState(null);
+  const [selectedWorkerName, setSelectedWorkerName] = useState("");
   const [newPin, setNewPin] = useState("");
 
   const loadWorkers = async () => {
@@ -70,10 +71,10 @@ export default function WorkersScreen() {
     }
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id, workerName) => {
     Alert.alert(
-      "Confirm Delete",
-      "Are you sure you want to delete this worker?",
+      "Delete Worker?",
+      `Are you sure you want to delete ${workerName}? This action cannot be undone.`,
       [
         { text: "Cancel", style: "cancel" },
         {
@@ -83,6 +84,7 @@ export default function WorkersScreen() {
             try {
               await deleteWorker(id, token);
               loadWorkers();
+              Alert.alert("Deleted", "Worker has been removed");
             } catch {
               Alert.alert("Error", "Failed to delete worker");
             }
@@ -92,8 +94,9 @@ export default function WorkersScreen() {
     );
   };
 
-  const openResetModal = (id) => {
+  const openResetModal = (id, workerName) => {
     setSelectedWorkerId(id);
+    setSelectedWorkerName(workerName);
     setNewPin("");
     setShowResetModal(true);
   };
@@ -132,15 +135,17 @@ export default function WorkersScreen() {
       <View style={styles.workerActions}>
         <TouchableOpacity
           style={[styles.workerBtn, styles.resetBtn]}
-          onPress={() => openResetModal(item._id)}
+          onPress={() => openResetModal(item._id, item.name)}
         >
-          <Text style={styles.workerBtnText}>🔑 Reset PIN</Text>
+          <Text style={styles.resetBtnIcon}>🔒</Text>
+          <Text style={styles.workerBtnText}>Reset PIN</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.workerBtn, styles.deleteWorkerBtn]}
-          onPress={() => handleDelete(item._id)}
+          onPress={() => handleDelete(item._id, item.name)}
         >
-          <Text style={styles.deleteWorkerBtnText}>🗑️ Delete</Text>
+          <Text style={styles.deleteBtnIcon}>🗑️</Text>
+          <Text style={styles.deleteWorkerBtnText}>Delete</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -154,7 +159,9 @@ export default function WorkersScreen() {
       <View style={styles.header}>
         <View>
           <Text style={styles.headerTitle}>Workers</Text>
-          <Text style={styles.headerSubtitle}>{workers.length} active</Text>
+          <Text style={styles.headerSubtitle}>
+            {workers.length} {workers.length === 1 ? "worker" : "workers"} active
+          </Text>
         </View>
         <TouchableOpacity
           style={styles.addButton}
@@ -169,7 +176,15 @@ export default function WorkersScreen() {
         <View style={styles.emptyState}>
           <Text style={styles.emptyIcon}>👷</Text>
           <Text style={styles.emptyTitle}>No Workers Yet</Text>
-          <Text style={styles.emptyText}>Add your first worker to get started</Text>
+          <Text style={styles.emptyText}>
+            Add your first worker to help manage customers
+          </Text>
+          <TouchableOpacity
+            style={styles.emptyButton}
+            onPress={() => setShowAddForm(true)}
+          >
+            <Text style={styles.emptyButtonText}>Add Worker</Text>
+          </TouchableOpacity>
         </View>
       ) : (
         <FlatList
@@ -193,6 +208,10 @@ export default function WorkersScreen() {
             </View>
 
             <ScrollView style={styles.modalContent}>
+              <View style={styles.iconCircle}>
+                <Text style={styles.modalIcon}>👷</Text>
+              </View>
+
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>Worker Name *</Text>
                 <TextInput
@@ -228,9 +247,12 @@ export default function WorkersScreen() {
                   maxLength={6}
                   style={styles.modalInput}
                 />
-                <Text style={styles.inputHint}>
-                  Worker will use this PIN to login
-                </Text>
+                <View style={styles.infoBox}>
+                  <Text style={styles.infoIcon}>ℹ️</Text>
+                  <Text style={styles.infoText}>
+                    Worker will use this PIN to login to the app
+                  </Text>
+                </View>
               </View>
             </ScrollView>
 
@@ -255,15 +277,21 @@ export default function WorkersScreen() {
       {/* Reset PIN Modal */}
       <Modal visible={showResetModal} transparent animationType="fade">
         <View style={styles.modalOverlay}>
-          <View style={[styles.modalContainer, { maxHeight: 350 }]}>
+          <View style={[styles.modalContainer, { maxHeight: 400 }]}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Reset Worker PIN</Text>
+              <Text style={styles.modalTitle}>Reset PIN</Text>
               <TouchableOpacity onPress={() => setShowResetModal(false)}>
                 <Text style={styles.closeButton}>✕</Text>
               </TouchableOpacity>
             </View>
 
             <View style={styles.modalContent}>
+              <View style={styles.iconCircle}>
+                <Text style={styles.modalIcon}>🔒</Text>
+              </View>
+
+              <Text style={styles.resetWorkerName}>{selectedWorkerName}</Text>
+
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>New PIN *</Text>
                 <TextInput
@@ -276,6 +304,9 @@ export default function WorkersScreen() {
                   maxLength={6}
                   style={styles.modalInput}
                 />
+                <Text style={styles.inputHint}>
+                  Worker will need this new PIN to login
+                </Text>
               </View>
             </View>
 
@@ -331,6 +362,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 10,
+    shadowColor: "#8b5cf6",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
   },
   addButtonText: {
     color: "#fff",
@@ -345,6 +381,8 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
@@ -356,9 +394,9 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   workerAvatar: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     backgroundColor: "#8b5cf6",
     justifyContent: "center",
     alignItems: "center",
@@ -366,7 +404,7 @@ const styles = StyleSheet.create({
   },
   workerAvatarText: {
     color: "#fff",
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: "bold",
   },
   workerInfo: {
@@ -397,9 +435,12 @@ const styles = StyleSheet.create({
   },
   workerBtn: {
     flex: 1,
-    paddingVertical: 10,
-    borderRadius: 8,
+    flexDirection: "row",
+    paddingVertical: 12,
+    borderRadius: 10,
     alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
   },
   resetBtn: {
     backgroundColor: "#eff6ff",
@@ -407,13 +448,19 @@ const styles = StyleSheet.create({
   deleteWorkerBtn: {
     backgroundColor: "#fef2f2",
   },
+  resetBtnIcon: {
+    fontSize: 14,
+  },
+  deleteBtnIcon: {
+    fontSize: 14,
+  },
   workerBtnText: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: "600",
     color: "#1e293b",
   },
   deleteWorkerBtnText: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: "600",
     color: "#dc2626",
   },
@@ -424,19 +471,37 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
   },
   emptyIcon: {
-    fontSize: 64,
-    marginBottom: 16,
+    fontSize: 80,
+    marginBottom: 20,
   },
   emptyTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: "bold",
     color: "#1e293b",
     marginBottom: 8,
   },
   emptyText: {
-    fontSize: 14,
+    fontSize: 15,
     color: "#64748b",
     textAlign: "center",
+    marginBottom: 24,
+    lineHeight: 22,
+  },
+  emptyButton: {
+    backgroundColor: "#8b5cf6",
+    paddingHorizontal: 32,
+    paddingVertical: 14,
+    borderRadius: 12,
+    shadowColor: "#8b5cf6",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  emptyButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
   },
   modalOverlay: {
     flex: 1,
@@ -447,7 +512,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    maxHeight: "80%",
+    maxHeight: "85%",
   },
   modalHeader: {
     flexDirection: "row",
@@ -470,6 +535,19 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     padding: 20,
+  },
+  iconCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: "#f3f0ff",
+    justifyContent: "center",
+    alignItems: "center",
+    alignSelf: "center",
+    marginBottom: 24,
+  },
+  modalIcon: {
+    fontSize: 40,
   },
   inputGroup: {
     marginBottom: 20,
@@ -494,6 +572,34 @@ const styles = StyleSheet.create({
     color: "#64748b",
     marginTop: 6,
   },
+  infoBox: {
+    flexDirection: "row",
+    backgroundColor: "#eff6ff",
+    padding: 12,
+    borderRadius: 10,
+    borderLeftWidth: 3,
+    borderLeftColor: "#3b82f6",
+    marginTop: 8,
+    alignItems: "flex-start",
+  },
+  infoIcon: {
+    fontSize: 14,
+    marginRight: 8,
+    marginTop: 1,
+  },
+  infoText: {
+    flex: 1,
+    fontSize: 13,
+    color: "#1e40af",
+    lineHeight: 18,
+  },
+  resetWorkerName: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#1e293b",
+    textAlign: "center",
+    marginBottom: 20,
+  },
   modalActions: {
     flexDirection: "row",
     gap: 12,
@@ -517,6 +623,11 @@ const styles = StyleSheet.create({
   },
   saveBtn: {
     backgroundColor: "#8b5cf6",
+    shadowColor: "#8b5cf6",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
   },
   saveBtnText: {
     color: "#fff",

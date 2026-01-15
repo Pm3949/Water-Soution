@@ -1,8 +1,16 @@
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, StatusBar, KeyboardAvoidingView, Platform } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  StatusBar,
+  KeyboardAvoidingView,
+  Platform,
+} from "react-native";
 import { useState, useContext } from "react";
 import { loginApi } from "../services/api";
 import { AuthContext } from "../context/AuthContext";
-import { LinearGradient } from 'expo-linear-gradient';
 
 export default function LoginScreen({ navigation }) {
   const { login } = useContext(AuthContext);
@@ -30,27 +38,29 @@ export default function LoginScreen({ navigation }) {
   };
 
   return (
-    <KeyboardAvoidingView 
+    <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={styles.container}
     >
       <StatusBar barStyle="light-content" />
-      
+
+      {/* Dark Header Section */}
       <View style={styles.header}>
         <View style={styles.iconContainer}>
           <Text style={styles.icon}>💧</Text>
         </View>
-        <Text style={styles.title}>RO Water Management</Text>
-        <Text style={styles.subtitle}>Sign in to continue</Text>
+        <Text style={styles.title}>RO Digital Service</Text>
+        <Text style={styles.subtitle}>Manage your business</Text>
       </View>
 
+      {/* White Form Container */}
       <View style={styles.formContainer}>
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Phone Number</Text>
           <View style={styles.inputWrapper}>
             <Text style={styles.inputIcon}>📱</Text>
             <TextInput
-              placeholder="Enter your phone number"
+              placeholder="Enter phone number"
               placeholderTextColor="#94a3b8"
               value={phone}
               onChangeText={setPhone}
@@ -77,8 +87,8 @@ export default function LoginScreen({ navigation }) {
           </View>
         </View>
 
-        <TouchableOpacity 
-          style={[styles.button, loading && styles.buttonDisabled]} 
+        <TouchableOpacity
+          style={[styles.button, loading && styles.buttonDisabled]}
           onPress={handleLogin}
           disabled={loading}
         >
@@ -86,9 +96,9 @@ export default function LoginScreen({ navigation }) {
             {loading ? "Signing in..." : "Sign In"}
           </Text>
         </TouchableOpacity>
-      </View>
 
-      <View style={styles.footer}>
+        <View style={styles.spacer} />
+        
         <Text style={styles.footerText}>Secure Login • Protected Access</Text>
       </View>
     </KeyboardAvoidingView>
@@ -190,12 +200,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
   },
-  footer: {
-    paddingVertical: 20,
-    alignItems: "center",
+  spacer: {
+    flex: 1,
   },
   footerText: {
     color: "#64748b",
     fontSize: 12,
+    textAlign: "center",
+    paddingBottom: 20,
   },
 });

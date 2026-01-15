@@ -1,36 +1,31 @@
 import mongoose from "mongoose";
 
-const customerSchema = new mongoose.Schema({
-    name:{
-        type: String,
-        required: true
-    },
-    
-    phone:{
-        type: String,
-        required: true,
-        unique: true
+const customerSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true },
+    phone: { type: String, required: true, unique: true },
+    address: { type: String, required: true },
+
+    lastServiceDate: {
+      type: Date,
+      required: true,
     },
 
-    address:{
-        type: String,
-        required: true
+    nextServiceDate: {
+      type: Date,
+      required: true,
     },
+  },
+  { timestamps: true }
+);
 
-    lastServiceDate:{
-        type: Date,
-        required: true
-    },
-},{timestamps: true});
-
-// Auto-calculate next service date
-customerSchema.pre("save", function (next) {
+// ✅ ASYNC hook — no next(), no done()
+customerSchema.pre("save", async function () {
   if (this.isModified("lastServiceDate")) {
-    const d = new Date(this.lastServiceDate);
-    d.setDate(d.getDate() + 90);
-    this.nextServiceDate = d;
+    const nextService = new Date(this.lastServiceDate);
+    nextService.setDate(nextService.getDate() + 90);
+    this.nextServiceDate = nextService;
   }
-  next();
 });
 
 const Customer = mongoose.model("Customer", customerSchema);
