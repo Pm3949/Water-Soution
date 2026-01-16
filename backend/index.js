@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 import customerRoutes from './routes/customerRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import userRoutes from './routes/userRoutes.js';
+import serviceRoutes from './routes/serviceRoutes.js'
 import "./utils/reminderJob.js";
 import { sendWhatsapp, sendSMS } from './utils/messageService.js';
 
@@ -25,6 +26,7 @@ mongoose.connect(process.env.MONGO_URI).then(() => {
 app.use('/customers', customerRoutes);
 app.use('/auth', authRoutes);
 app.use('/users', userRoutes);
+app.use('/services', serviceRoutes);
 
 app.get('/', (req, res) => {
     res.send('RO Digital Service Backend is running');
