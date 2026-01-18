@@ -12,7 +12,7 @@ export const createService = async (req, res) => {
     const service = await Service.create({
       customerId,
       serviceDate,
-      assignedWorker: assignedWorker || null,
+      assignedWorkerId: assignedWorker || null,
       createdBy: req.user._id,
     });
 
