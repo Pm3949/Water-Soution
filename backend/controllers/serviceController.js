@@ -36,7 +36,6 @@ export const getPendingServices = async (req, res) => {
 
     const query = {
       status: "pending",
-      serviceDate: { $lte: today },
       createdBy: req.user._id,
     };
 
