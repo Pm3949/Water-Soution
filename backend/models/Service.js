@@ -39,4 +39,9 @@ const serviceSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+serviceSchema.index(
+  { completedAt: 1 },
+  { expireAfterSeconds: 60 * 60 * 24 * 2 }
+);
+
 export default mongoose.model("Service", serviceSchema);
