@@ -3,28 +3,22 @@ import User from "../models/User.js";
 
 export const protect = async (req, res, next) => {
   try {
-    const authHeader = req.headers.authorization;
+    let token = req.headers.authorization?.split(" ")[1];
+    if (!token) return res.status(401).json({ message: "Not authorized" });
 
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(401).json({ message: "No token provided" });
-    }
-
-    const token = authHeader.split(" ")[1];
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = await User.findById(decoded.id).select("-password");
 
-    const user = await User.findById(decoded.id).select("-pinHash");
-    if (!user) {
+    if (!req.user) {
       return res.status(401).json({ message: "User not found" });
     }
 
-    req.user = user;
-    req.userId = user._id;
     next();
-
-  } catch (err) {
+  } catch {
     res.status(401).json({ message: "Invalid token" });
   }
 };
+
 
 export const onlyOwner = (req, res, next) => {
   if (req.user.role !== "owner") {

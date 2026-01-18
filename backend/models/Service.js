@@ -1,26 +1,27 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
-const serviceSchema = new mongoose.Schema({
-    customerId:{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Customer",
-        required: true,
+const serviceSchema = new mongoose.Schema(
+  {
+    customerId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Customer",
+      required: true,
     },
 
-    serviceDate:{
-        type: Date,
-        required: true,
+    serviceDate: {
+      type: Date,
+      required: true,
     },
 
     status: {
       type: String,
-      enum: ["pending", "completed", "cancelled"],
+      enum: ["pending", "completed"],
       default: "pending",
     },
 
     assignedWorkerId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User", // worker
+      ref: "User",
       default: null,
     },
 
@@ -33,9 +34,9 @@ const serviceSchema = new mongoose.Schema({
     completedAt: {
       type: Date,
       default: null,
-      index: { expireAfterSeconds: 172800 }, // 2 days
     },
-}, {timestamps: true});
+  },
+  { timestamps: true }
+);
 
-const Service = mongoose.model("Service", serviceSchema);
-export default Service;
+export default mongoose.model("Service", serviceSchema);

@@ -1,9 +1,12 @@
 import Service from "../models/Service.js";
 import Customer from "../models/Customer.js";
 
+/**
+ * CREATE SERVICE
+ */
 export const createService = async (req, res) => {
   try {
-    const { customerId, serviceDate, assignedWorker } = req.body;
+    const { customerId, serviceDate, assignedWorkerId } = req.body;
 
     if (!customerId || !serviceDate) {
       return res.status(400).json({ message: "Missing required fields" });
@@ -12,16 +15,20 @@ export const createService = async (req, res) => {
     const service = await Service.create({
       customerId,
       serviceDate,
-      assignedWorkerId: assignedWorker || null,
+      assignedWorkerId: assignedWorkerId || null,
       createdBy: req.user._id,
     });
 
     res.status(201).json(service);
-  } catch (error) {
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ message: "Failed to create service" });
   }
 };
 
+/**
+ * GET PENDING SERVICES
+ */
 export const getPendingServices = async (req, res) => {
   try {
     const today = new Date();
@@ -30,9 +37,9 @@ export const getPendingServices = async (req, res) => {
     const query = {
       status: "pending",
       serviceDate: { $lte: today },
+      createdBy: req.user._id,
     };
 
-    // Worker sees only assigned services
     if (req.user.role === "worker") {
       query.assignedWorkerId = req.user._id;
     }
@@ -40,21 +47,24 @@ export const getPendingServices = async (req, res) => {
     const services = await Service.find(query)
       .populate("customerId")
       .populate("assignedWorkerId", "name phone")
-      .sort({ serviceDate: 1 }); // oldest first
+      .sort({ serviceDate: 1 });
 
     res.json(services);
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: "Failed to load services" });
   }
 };
 
-
+/**
+ * COMPLETE SERVICE
+ */
 export const completeService = async (req, res) => {
   try {
     const service = await Service.findById(req.params.id);
 
     if (!service) {
-      return res.status(400).json({ message: "Service not found" });
+      return res.status(404).json({ message: "Service not found" });
     }
 
     if (service.status === "completed") {
@@ -70,7 +80,8 @@ export const completeService = async (req, res) => {
     });
 
     res.json({ message: "Service completed successfully" });
-  } catch (error) {
-    res.status(500).json({message: "Failed to complete service"});
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to complete service" });
   }
 };
