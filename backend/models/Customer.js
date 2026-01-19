@@ -6,9 +6,23 @@ const customerSchema = new mongoose.Schema(
     phone: { type: String, required: true, unique: true },
     address: { type: String, required: true },
 
+    // 🆕 Customer first time join date
+    joinedAt: {
+      type: Date,
+      default: Date.now,
+      immutable: true, // 🔒 kabhi change nahi hoga
+    },
+
     lastServiceDate: {
       type: Date,
       required: true,
+    },
+
+    // ❌ enum removed → fully flexible
+    serviceIntervalDays: {
+      type: Number,
+      required: true,
+      min: 1, // safety
     },
 
     nextServiceDate: {
@@ -19,12 +33,15 @@ const customerSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// ✅ ASYNC hook — no next(), no done()
-customerSchema.pre("save", async function () {
-  if (this.isModified("lastServiceDate")) {
-    const nextService = new Date(this.lastServiceDate);
-    nextService.setDate(nextService.getDate() + 90);
-    this.nextServiceDate = nextService;
+// 🔁 Auto-calc next service
+customerSchema.pre("save", function () {
+  if (
+    this.isModified("lastServiceDate") ||
+    this.isModified("serviceIntervalDays")
+  ) {
+    const next = new Date(this.lastServiceDate);
+    next.setDate(next.getDate() + this.serviceIntervalDays);
+    this.nextServiceDate = next;
   }
 });
 

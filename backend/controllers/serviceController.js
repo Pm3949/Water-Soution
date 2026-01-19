@@ -60,8 +60,13 @@ export const getPendingServices = async (req, res) => {
  */
 export const completeService = async (req, res) => {
   try {
-    const service = await Service.findById(req.params.id);
+    const { intervalDays } = req.body; // 👈 NEW
 
+    if (!intervalDays || intervalDays <= 0) {
+      return res.status(400).json({ message: "Invalid service interval" });
+    }
+
+    const service = await Service.findById(req.params.id);
     if (!service) {
       return res.status(404).json({ message: "Service not found" });
     }
@@ -74,18 +79,24 @@ export const completeService = async (req, res) => {
     service.completedAt = new Date();
     await service.save();
 
-    const completedDate = new Date();
+    const customer = await Customer.findById(service.customerId);
+    if (!customer) {
+      return res.status(404).json({ message: "Customer not found" });
+    }
 
-    // calculate next service date (+90 days)
-    const nextServiceDate = new Date(completedDate);
-    nextServiceDate.setDate(nextServiceDate.getDate() + 90);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-    await Customer.findByIdAndUpdate(service.customerId, {
-      lastServiceDate: completedDate,
-      nextServiceDate: nextServiceDate,
+    customer.lastServiceDate = today;
+    customer.serviceIntervalDays = intervalDays;
+    // nextServiceDate auto-calculated by pre-save hook
+
+    await customer.save();
+
+    res.json({
+      message: "Service completed successfully",
+      nextServiceDate: customer.nextServiceDate,
     });
-
-    res.json({ message: "Service completed successfully" });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Failed to complete service" });

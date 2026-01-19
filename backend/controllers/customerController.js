@@ -1,20 +1,17 @@
 import Customer from "../models/Customer.js";
-import { sendWhatsapp, sendSMS } from '../utils/messageService.js';
+import { sendWhatsapp, sendSMS } from "../utils/messageService.js";
 
 export const addCustomer = async (req, res) => {
   try {
-    const { name, phone, address, lastServiceDate } = req.body;
+    const { name, phone, address, lastServiceDate, serviceIntervalDays } =
+      req.body;
 
     const customer = new Customer({
       name,
       phone,
       address,
       lastServiceDate,
-      nextServiceDate: new Date(
-        new Date(lastServiceDate).setDate(
-          new Date(lastServiceDate).getDate() + 90
-        )
-      ),
+      serviceIntervalDays,
     });
 
     await customer.save();
@@ -23,7 +20,6 @@ export const addCustomer = async (req, res) => {
     res.status(400).json({ message: error.message });
   }
 };
-
 
 export const getCustomers = async (req, res) => {
   try {
@@ -50,15 +46,17 @@ export const updateCustomer = async (req, res) => {
       customer.lastServiceDate = req.body.lastServiceDate;
       // nextServiceDate auto updates via pre-save hook
     }
+    if (req.body.serviceIntervalDays !== undefined) {
+      customer.serviceIntervalDays = req.body.serviceIntervalDays;
+    }
 
-    await customer.save(); 
+    await customer.save();
 
     res.json(customer);
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
 };
-
 
 export const deleteCustomer = async (req, res) => {
   try {
@@ -74,20 +72,20 @@ export const deleteCustomer = async (req, res) => {
 };
 
 export const sendManualReminder = async (req, res) => {
-    try {
-        const customer = await Customer.findById(req.params.id);
-        if(!customer){
-            return res.status(404).json({message: "Customer not found"});
-        }
-
-        await sendSMS(customer.phone, customer.name);
-        await sendWhatsapp(customer.phone, customer.name);
-
-        res.json({message: "Reminders sent successfully"});
-    } catch (error) {
-       console.error("REMINDER ERROR:", error);   
-        res.status(500).json({message: error.message});
+  try {
+    const customer = await Customer.findById(req.params.id);
+    if (!customer) {
+      return res.status(404).json({ message: "Customer not found" });
     }
+
+    await sendSMS(customer.phone, customer.name);
+    await sendWhatsapp(customer.phone, customer.name);
+
+    res.json({ message: "Reminders sent successfully" });
+  } catch (error) {
+    console.error("REMINDER ERROR:", error);
+    res.status(500).json({ message: error.message });
+  }
 };
 
 export const getOverdueCustomers = async (req, res) => {
@@ -105,7 +103,6 @@ export const getOverdueCustomers = async (req, res) => {
   }
 };
 
-
 export const markServiceDone = async (req, res) => {
   try {
     // console.log("SERVICE DONE HIT:", req.params.id);
@@ -119,20 +116,16 @@ export const markServiceDone = async (req, res) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // ✅ Update last service
     customer.lastServiceDate = today;
 
-    // ✅ Create NEW date object for next service
     const nextService = new Date(today);
-    nextService.setDate(nextService.getDate() + 90);
+    nextService.setDate(nextService.getDate() + customer.serviceIntervalDays);
 
     customer.nextServiceDate = nextService;
-
     await customer.save();
 
     // console.log("SERVICE UPDATED:", customer._id);
     res.json(customer);
-
   } catch (error) {
     console.error("SERVICE DONE ERROR:", error);
     res.status(500).json({ message: error.message });
